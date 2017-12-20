@@ -757,16 +757,16 @@ def ch26():
 def ch27():
     get_page('/hex/zigzag.gif', 'butter', 'fly', 'zigzag.gif')
     img = Image.open('zigzag.gif')
-    palette = img.palette.getdata()[1][::3]
-    imgbytes = img.tobytes()
-    trans = bytes.maketrans(bytes(range(256)), palette)
-    imgtrans = imgbytes.translate(trans)
+    img2 = img.convert('L')
+    img2.save('zigzag2.gif')
+    data = list(img.getdata())
+    data2 = list(img2.getdata())
     #hint
     im = Image.new('1', img.size, 0)
-    im.putdata([p[0] == p[1] for p in zip(imgbytes[1:], imgtrans[:-1])])
+    im.putdata([p[0] == p[1] for p in zip(data[1:], data2)])
     im.save('zigclue.png')
-
-    deltas = filter(lambda p: p[0] != p[1], zip(imgbytes[1:], imgtrans))
+    #answer
+    deltas = filter(lambda p: p[0] != p[1], zip(data[1:], data2))
     bzbytes = bytes([p[0] for p in deltas])
     bwords = bz2.decompress(bzbytes)
     wordset = set(bwords.decode().split(' '))
@@ -780,13 +780,8 @@ def ch28():
     get_page('/ring/bell.png', 'repeat', 'switch', 'bell.png')
     img = Image.open('bell.png')
     rs, gs, bs = img.split()
-    w, h = img.size
-    deltas = []
-    for i in range(w//2):
-        for j in range(h):
-            g1 = gs.getpixel((i*2, j))
-            g2 = gs.getpixel((i*2+1, j))
-            deltas.append(abs(g1-g2))
+    data = list(gs.getdata())
+    deltas = [abs(data[2*i]-data[2*i+1]) for i in range(len(data)//2)]
     message = bytes(filter(lambda d: d % 42 != 0, deltas))
     print(message)
     return "guido"
@@ -797,9 +792,7 @@ def ch29():
     end = b'</html>\n'
     endpos = bs.rindex(end)+len(end)
     lines = bs[endpos:].split(b'\n')
-    counts = []
-    for l in lines:
-        counts.append(len(l))
+    counts = [len(l) for l in lines]
     message = bz2.decompress(bytes(counts))
     print(message)
     return "yankeedoodle"
@@ -1111,3 +1104,4 @@ def answers():
     print("30:", "grandpa")
     print("31:", "arecibo")
     print("32:", "python, beer")
+    print("33:", "gremlins")
